@@ -8,6 +8,7 @@ from os.path import join
 
 import numpy as np
 import pyroomacoustics as pra
+import scipy.stats as stats
 
 
 class NoiseAugmentation(BaseAugmentation):
@@ -102,7 +103,6 @@ class RoomSimulationAugmentation(BaseAugmentation):
 
         return audio_array
 
-
     @staticmethod
     def _generate_room() -> pra.ShoeBox:
         """
@@ -115,12 +115,18 @@ class RoomSimulationAugmentation(BaseAugmentation):
             The generated room.
         """
 
-        rt60 = 0.5
+        rt60 = np.random.uniform(0.1, 0.5)
 
         # Generate a random room
         l = np.random.uniform(3, 10)
         w = np.random.uniform(3, 10)
-        h = np.abs(np.random.normal(3, 0.6)) # 2.4m is the average height of a room
+
+        # Truncated normal distribution with
+        mu, sigma = 2.4, 0.6
+        h = stats.truncnorm(
+            (2.2 - mu) / sigma, (5 - mu) / sigma, loc=mu, scale=sigma
+        ).rvs(1)[0]
+
         room_dim = np.array([l, w, h])
 
         e_absorption, max_order = pra.inverse_sabine(rt60, room_dim)
@@ -131,7 +137,7 @@ class RoomSimulationAugmentation(BaseAugmentation):
             materials=pra.Material(e_absorption),
             max_order=max_order,
             use_rand_ism=True,
-            max_rand_disp=0.05
+            max_rand_disp=0.05,
         )
 
         return room
@@ -159,6 +165,3 @@ class RoomSimulationAugmentation(BaseAugmentation):
         assert room.is_inside(location), "Location is not inside the room."
 
         return location
-
-
-

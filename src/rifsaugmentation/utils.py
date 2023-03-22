@@ -6,9 +6,7 @@ import librosa
 import numpy as np
 
 
-def load_wav_with_checks(
-    filename: str
-) -> np.ndarray:
+def load_wav_with_checks(filename: str) -> np.ndarray:
     """
     Load a wav file. Assert that the sample rate is equals to sr, that it is mono and is not empty.
 

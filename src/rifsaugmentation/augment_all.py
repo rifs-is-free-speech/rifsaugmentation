@@ -9,10 +9,8 @@ import os
 
 # TODO: Extend this to support other augmentations as well.
 def augment_all(
-        source_path: str,
-        target_path: str,
-        noise_path: str = None,
-        recursive=False):
+    source_path: str, target_path: str, noise_path: str = None, recursive=False
+):
     """
     Main function. Augment all files in a given folder and deliver to target folder.
 
@@ -44,9 +42,9 @@ def augment_all(
     if noise_path:
         augments.append(NoiseAugmentation(noise_path, **kwargs))
     # TODO: Add other augmentations down the line
-    #if with_room_simulation:
+    # if with_room_simulation:
     #    augments.append(RoomSimulationAugmentation())
-    #if with_voice_conversion:
+    # if with_voice_conversion:
     #    augments.append(VoiceConversionAugmentation()
 
     for filename in filenames:
