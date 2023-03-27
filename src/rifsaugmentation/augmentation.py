@@ -88,9 +88,8 @@ class RoomSimulationAugmentation(BaseAugmentation):
 
         # Simulate the audio in a room
         room = np.random.choice(self.rooms)
-        # place the source in the room
-        # TODO: Consider how to place the source in the room. Currently it is uniformly distributed. Maybe use a Gaussian distribution?
 
+        # place the source in the room
         room.add_source(self._get_random_location(room), signal=audio_array, delay=0.5)
 
         # place a microphone in the room
@@ -107,7 +106,21 @@ class RoomSimulationAugmentation(BaseAugmentation):
     def _generate_room() -> pra.ShoeBox:
         """
         Generate a room.
-        Minimum room size is 3m x 3m x 3m, maximum size is 10m x 10m x 10m.
+        This abstraction allows for more room types to be added in the future.
+
+        Returns
+        -------
+        pra.ShoeBox
+            The generated room.
+        """
+        # TODO: Add more room types
+        return RoomSimulationAugmentation._generate_cuboid_room()
+
+    @staticmethod
+    def _generate_cuboid_room() -> pra.ShoeBox:
+        """
+        Generate a room with four walls.
+        Minimum room size is 3m x 3m x 5m, maximum size is 10m x 10m x 5m.
 
         Returns
         -------
@@ -115,19 +128,14 @@ class RoomSimulationAugmentation(BaseAugmentation):
             The generated room.
         """
 
-        rt60 = np.random.uniform(0.1, 0.5)
+        rt60 = np.random.uniform(0, 1.5)
 
         # Generate a random room
-        l = np.random.uniform(3, 10)
-        w = np.random.uniform(3, 10)
+        length = np.random.uniform(3, 10)
+        width = np.random.uniform(3, 10)
+        height = RoomSimulationAugmentation._get_ceiling_height()
 
-        # Truncated normal distribution with
-        mu, sigma = 2.4, 0.6
-        h = stats.truncnorm(
-            (2.2 - mu) / sigma, (5 - mu) / sigma, loc=mu, scale=sigma
-        ).rvs(1)[0]
-
-        room_dim = np.array([l, w, h])
+        room_dim = np.array([length, width, height])
 
         e_absorption, max_order = pra.inverse_sabine(rt60, room_dim)
 
@@ -141,6 +149,25 @@ class RoomSimulationAugmentation(BaseAugmentation):
         )
 
         return room
+
+    @staticmethod
+    def _get_ceiling_height() -> float:
+        """
+        Get the ceiling height of the room.
+
+        Returns
+        -------
+        float
+            The ceiling height.
+        """
+
+        # Truncated normal distribution with
+        mu, sigma = 2.4, 0.6
+        h = stats.truncnorm(
+            (2.2 - mu) / sigma, (5 - mu) / sigma, loc=mu, scale=sigma
+        ).rvs(1)[0]
+
+        return h
 
     @staticmethod
     def _get_random_location(room: pra.ShoeBox) -> np.ndarray:
@@ -157,11 +184,15 @@ class RoomSimulationAugmentation(BaseAugmentation):
         np.ndarray
             The location.
         """
-        l = np.random.uniform(0, room.shoebox_dim[0])
-        w = np.random.uniform(0, room.shoebox_dim[1])
-        h = np.random.uniform(0, room.shoebox_dim[2])
 
-        location = np.array([l, w, h])
+        # TODO: Consider how to place the source in the room.
+        # Currently it is uniformly distributed. Maybe use a Gaussian distribution?
+
+        length = np.random.uniform(0, room.shoebox_dim[0])
+        width = np.random.uniform(0, room.shoebox_dim[1])
+        height = np.random.uniform(0, room.shoebox_dim[2])
+
+        location = np.array([length, width, height])
         assert room.is_inside(location), "Location is not inside the room."
 
         return location

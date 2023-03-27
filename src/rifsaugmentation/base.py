@@ -1,8 +1,6 @@
 """Base classes for the rifsaugmentation library."""
 
 from abc import ABC, abstractmethod
-from glob import glob
-from os.path import join
 
 import numpy as np
 
