@@ -37,7 +37,7 @@ def augment_all(
     """
     # Find list of all files
     # TODO: Consider how to handle the case when the dataset is not segmented
-    filenames = glob(f"{source_path}/*.wav", recursive=recursive)
+    filenames = glob(f"{source_path}/**/*.wav", recursive=recursive)
 
     os.makedirs(target_path, exist_ok=True)
 
@@ -56,7 +56,6 @@ def augment_all(
     if noise_path:
         augments.append(NoiseAugmentation(noise_path, **kwargs))
     # TODO: Add other augmentations down the line
-
     augments.append(ModifySpeedAugmentation(speed))
 
     for filename in filenames:
@@ -66,9 +65,11 @@ def augment_all(
         for augmentation in augments:
             audio_array = augmentation(audio_array)
 
+        trg = os.path.join(target_path, filename.replace(source_path+"/", ""))
+        os.makedirs(os.path.dirname(trg), exist_ok=True)
         # Save to target destination
         sf.write(
-            os.path.join(target_path, os.path.basename(filename)),
+            trg,
             audio_array,
             sr,
         )

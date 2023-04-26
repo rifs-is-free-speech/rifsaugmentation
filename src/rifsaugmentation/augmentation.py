@@ -230,5 +230,5 @@ class ModifySpeedAugmentation(BaseAugmentation):
         numpy.ndarray
             The augmented waveform.
         """
-        audio_array = librosa.effects.time_stretch(audio_array, self.speed)
+        audio_array = librosa.effects.time_stretch(audio_array, rate=self.speed)
         return audio_array
