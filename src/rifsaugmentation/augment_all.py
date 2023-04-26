@@ -41,12 +41,12 @@ def augment_all(
 
     Examples
     --------
-    >>> !ls data
+    >>> !ls data # doctest: +SKIP
     clean  noise
-    >>> !ls data/clean
+    >>> !ls data/clean # doctest: +SKIP
     1.wav  2.wav 3.wav 4.wav 5.wav
-    >>> augment_all("data/clean", "data/augmented_data", with_room_simulation=True, speed=1.1 noise_path="noise")
-    >>> !ls augmented_data
+    >>> augment_all("data/clean", "data/augmented_data", with_room_simulation=True, speed=1.1 noise_path="noise") # doctest: +SKIP
+    >>> !ls augmented_data # doctest: +SKIP
     1.wav 2.wav 3.wav 4.wav 5.wav
     """
     # Find list of all files
