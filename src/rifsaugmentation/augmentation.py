@@ -9,6 +9,7 @@ from os.path import join
 import numpy as np
 import pyroomacoustics as pra
 import scipy.stats as stats
+import librosa
 
 
 class NoiseAugmentation(BaseAugmentation):
@@ -196,3 +197,38 @@ class RoomSimulationAugmentation(BaseAugmentation):
         assert room.is_inside(location), "Location is not inside the room."
 
         return location
+
+
+class ModifySpeedAugmentation(BaseAugmentation):
+    """
+    Modify the speed of the audio.
+    """
+
+    def __init__(self, speed: float = 1.0):
+        """
+        Initialize the augmentation.
+
+        Parameters
+        ----------
+        speed: float
+            The speed to modify the audio with. 1.0 is the original speed. Default is 1.0.
+            If rate > 1.0, then the audio is sped up. If rate < 1.0, then the audio is slowed down.
+        """
+        self.speed = speed
+
+    def __call__(self, audio_array: np.ndarray) -> np.ndarray:
+        """
+        Apply the augmentation to a file.
+
+        Parameters
+        ----------
+        audio : numpy.ndarray
+            The waveform to augment
+
+        Returns
+        -------
+        numpy.ndarray
+            The augmented waveform.
+        """
+        audio_array = librosa.effects.time_stretch(audio_array, self.speed)
+        return audio_array

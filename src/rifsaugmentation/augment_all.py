@@ -1,7 +1,7 @@
 """Augment all audios in a directory. Main adapter for the CLI"""
 
 from glob import glob
-from rifsaugmentation.augmentation import NoiseAugmentation, RoomSimulationAugmentation
+from rifsaugmentation.augmentation import NoiseAugmentation, RoomSimulationAugmentation, ModifySpeedAugmentation
 from rifsaugmentation.utils import load_wav_with_checks
 
 import soundfile as sf
@@ -13,6 +13,7 @@ def augment_all(
     source_path: str,
     target_path: str,
     with_room_simulation: bool = False,
+    speed: float = 1.0,
     noise_path: str = None,
     recursive=False,
 ):
@@ -27,6 +28,8 @@ def augment_all(
         Path on where to deliver data.
     with_room_simulation: bool
         Whether to perform room simulation.
+    speed: float
+        Speed factor to apply to the audio. 1.0 is normal speed. Optional. Default: 1.0
     noise_path: str
         Path to the noise data. Optional, no noise augmentation is performed.
     recursive: bool
@@ -53,8 +56,8 @@ def augment_all(
     if noise_path:
         augments.append(NoiseAugmentation(noise_path, **kwargs))
     # TODO: Add other augmentations down the line
-    # if with_voice_conversion:
-    #    augments.append(VoiceConversionAugmentation()
+
+    augments.append(ModifySpeedAugmentation(speed))
 
     for filename in filenames:
         audio_array, sr = load_wav_with_checks(filename)
