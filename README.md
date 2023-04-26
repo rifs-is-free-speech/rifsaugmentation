@@ -1,1 +1,2 @@
-# rifsaugmentation
+# Rifs Augmentation library
+
