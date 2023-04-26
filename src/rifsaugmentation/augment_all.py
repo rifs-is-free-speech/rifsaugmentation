@@ -45,7 +45,7 @@ def augment_all(
     clean  noise
     >>> !ls data/clean
     1.wav  2.wav 3.wav 4.wav 5.wav
-    >>> augment_all("data/clean", "data/augmented_data", with_room_simulation=True, noise_path="noise")
+    >>> augment_all("data/clean", "data/augmented_data", with_room_simulation=True, speed=1.1 noise_path="noise")
     >>> !ls augmented_data
     1.wav 2.wav 3.wav 4.wav 5.wav
     """

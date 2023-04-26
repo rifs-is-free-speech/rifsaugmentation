@@ -3,8 +3,9 @@
 The augmentation classes are used to augment the data. Right now we support the
 following augmentation classes:
 
-    - NoiseAugmentation
-    - RoomSimulationAugmentation
+- NoiseAugmentation
+- RoomSimulationAugmentation
+- ModifySpeedAugmentation
 
 """
 
