@@ -1,4 +1,8 @@
-"""Augment all audios in a directory. Main adapter for the CLI"""
+"""Augment all audios in a directory. Main adapter for the rifs CLI
+
+You may use this outside the CLI as well, but it is recommended to use the
+augment_all function directly in the CLI.
+"""
 
 from glob import glob
 from rifsaugmentation.augmentation import NoiseAugmentation, RoomSimulationAugmentation, ModifySpeedAugmentation
@@ -34,6 +38,16 @@ def augment_all(
         Path to the noise data. Optional, no noise augmentation is performed.
     recursive: bool
         Whether to recursively search for files in the data_path.
+
+    Examples
+    --------
+    >>> !ls data # doctest: +SKIP
+    clean  noise
+    >>> !ls data/clean # doctest: +SKIP
+    1.wav  2.wav 3.wav 4.wav 5.wav
+    >>> augment_all("data/clean", "data/augmented_data", with_room_simulation=True, speed=1.1 noise_path="noise") # doctest: +SKIP
+    >>> !ls augmented_data # doctest: +SKIP
+    1.wav 2.wav 3.wav 4.wav 5.wav
     """
     # Find list of all files
     # TODO: Consider how to handle the case when the dataset is not segmented
