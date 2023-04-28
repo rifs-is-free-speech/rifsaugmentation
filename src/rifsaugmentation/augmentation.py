@@ -138,7 +138,10 @@ class RoomSimulationAugmentation(BaseAugmentation):
             The generated room.
         """
 
-        rt60 = np.random.uniform(0, 1.5)
+        mu, sigma = 0.5, 0.2
+        rt60 = stats.truncnorm(
+            (0.4 - mu) / sigma, (0.6 - mu) / sigma, loc=mu, scale=sigma
+        ).rvs(1)[0]
 
         # Generate a random room
         length = np.random.uniform(3, 10)
