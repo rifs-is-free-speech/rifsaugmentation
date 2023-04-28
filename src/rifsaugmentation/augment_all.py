@@ -5,7 +5,11 @@ augment_all function directly in the CLI.
 """
 
 from glob import glob
-from rifsaugmentation.augmentation import NoiseAugmentation, RoomSimulationAugmentation, ModifySpeedAugmentation
+from rifsaugmentation.augmentation import (
+    NoiseAugmentation,
+    RoomSimulationAugmentation,
+    ModifySpeedAugmentation,
+)
 from rifsaugmentation.utils import load_wav_with_checks
 
 import soundfile as sf
@@ -45,7 +49,7 @@ def augment_all(
     clean  noise
     >>> !ls data/clean # doctest: +SKIP
     1.wav  2.wav 3.wav 4.wav 5.wav
-    >>> augment_all("data/clean", "data/augmented_data", with_room_simulation=True, speed=1.1 noise_path="noise") # doctest: +SKIP
+    >>> augment_all("data/clean", "data/augmented_data", with_room_simulation=True, speed=1.1 noise_path="noise") # doctest: +SKIP # noqa
     >>> !ls augmented_data # doctest: +SKIP
     1.wav 2.wav 3.wav 4.wav 5.wav
     """
@@ -55,20 +59,13 @@ def augment_all(
 
     os.makedirs(target_path, exist_ok=True)
 
-    # TODO: Get from environment variables
-    kwargs = {
-        "mu": 0.25,
-        "sd": 0.1,
-        "n": 100,
-    }
-
     augments = []
 
     # Initialize augmentations
     if with_room_simulation:
-        augments.append(RoomSimulationAugmentation(**kwargs))
+        augments.append(RoomSimulationAugmentation(n=100))
     if noise_path:
-        augments.append(NoiseAugmentation(noise_path, **kwargs))
+        augments.append(NoiseAugmentation(noise_path, mu=0.25, sd=0.1))
     # TODO: Add other augmentations down the line
     augments.append(ModifySpeedAugmentation(speed))
 
@@ -79,7 +76,7 @@ def augment_all(
         for augmentation in augments:
             audio_array = augmentation(audio_array)
 
-        trg = os.path.join(target_path, filename.replace(source_path+"/", ""))
+        trg = os.path.join(target_path, filename.replace(source_path + "/", ""))
         os.makedirs(os.path.dirname(trg), exist_ok=True)
         # Save to target destination
         sf.write(
