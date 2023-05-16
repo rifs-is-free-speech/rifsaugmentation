@@ -16,7 +16,6 @@ from rifsaugmentation.augmentation import (
 from rifsaugmentation.utils import load_wav_with_checks
 
 
-# TODO: Extend this to support other augmentations as well.
 def augment_all(
     source_path: str,
     target_path: str,
@@ -64,6 +63,9 @@ def augment_all(
     """
     filenames = glob(f"{source_path}/*.wav", recursive=recursive)
 
+    if verbose and not quiet:
+        print(f"Found {len(filenames)} wav files in {source_path}")
+        print(f"Augmenting files and saving to {target_path}")
     os.makedirs(target_path, exist_ok=True)
 
     kwargs = {
@@ -77,7 +79,7 @@ def augment_all(
     if with_room_simulation:
         if verbose and not quiet:
             print("Initializing room simulation augmentation")
-        augments.append(RoomSimulationAugmentation(**kwargs))
+        augments.append(RoomSimulationAugmentation(n=100))
     if noise_path:
         if verbose and not quiet:
             print("Initializing noise augmentation")
@@ -98,6 +100,9 @@ def augment_all(
 
         target = os.path.join(target_path, os.path.relpath(filename, source_path))
 
+        if verbose and not quiet:
+            print(f"Saving {filename} to {target}")
+
         sf.write(
             target,
             audio_array,
@@ -108,6 +113,10 @@ def augment_all(
         other_files = list(
             set(glob(f"{source_path}/**", recursive=recursive)) - set(filenames)
         )
+        if verbose and not quiet:
+            print(f"Found {len(other_files)} other files in {source_path}")
+            print(other_files)
+
         for filename in other_files:
             target = os.path.join(target_path, os.path.relpath(filename, source_path))
             if verbose and not quiet:
