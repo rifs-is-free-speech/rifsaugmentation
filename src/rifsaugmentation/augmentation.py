@@ -9,16 +9,18 @@ following augmentation classes:
 
 """
 
-from rifsaugmentation.base import BaseAugmentation
+import librosa
+import random
 
+from rifsaugmentation.base import BaseAugmentation
 from rifsaugmentation.utils import load_wav_with_checks
+
 from glob import glob
 from os.path import join
 
 import numpy as np
 import pyroomacoustics as pra
 import scipy.stats as stats
-import librosa
 
 
 class NoiseAugmentation(BaseAugmentation):
@@ -36,6 +38,7 @@ class NoiseAugmentation(BaseAugmentation):
         for filename in glob(join(self.noise_path, "**/*.wav"), recursive=True):
             audio, _ = load_wav_with_checks(filename)
             self.noise_audios.append(audio)
+        assert len(self.noise_audios) > 0, "No noise files found"
 
     def __call__(self, audio_array: np.ndarray) -> np.ndarray:
         """
@@ -51,15 +54,11 @@ class NoiseAugmentation(BaseAugmentation):
         numpy.ndarray
             The augmented waveform.
         """
-
-        # Add noise
-        noise = np.random.choice(self.noise_audios)
+        noise = random.choice(self.noise_audios)
         noise = np.roll(noise, np.random.randint(0, len(noise)))
         noise = np.resize(noise, audio_array.shape[0])
         factor = np.abs(np.random.normal(self.mu, self.sd))
-
         audio_array = audio_array + (noise * factor)
-
         return audio_array
 
 
@@ -78,6 +77,7 @@ class RoomSimulationAugmentation(BaseAugmentation):
             Number of rooms to sample from. Automatically generated.
         """
         assert n > 0, "n must be a positive integer."
+        np.random.seed(42)
 
         self.rooms = [self._generate_room() for _ in range(n)]
 
@@ -96,14 +96,24 @@ class RoomSimulationAugmentation(BaseAugmentation):
             The augmented waveform.
         """
 
-        # Simulate the audio in a room
-        room = np.random.choice(self.rooms)
+        while True:
+            try:
+                # Simulate the audio in a room
+                room = np.random.choice(self.rooms)
 
-        # place the source in the room
-        room.add_source(self._get_random_location(room), signal=audio_array, delay=0.5)
+                # place the source in the room
+                room.add_source(
+                    self._get_random_location(room), signal=audio_array, delay=0.5
+                )
 
-        # place a microphone in the room
-        room.add_microphone(self._get_random_location(room))
+                # place a microphone in the room
+                loc = self._get_random_location(room)
+
+                room.add_microphone(loc)
+
+                break
+            except AttributeError:
+                continue
 
         # Run the simulation
         room.simulate()
@@ -138,12 +148,14 @@ class RoomSimulationAugmentation(BaseAugmentation):
             The generated room.
         """
 
-        rt60 = np.random.uniform(0, 1.5)
+        rt60 = RoomSimulationAugmentation._truncated_normal(0.5, 0.2, 0.3, 1)
 
         # Generate a random room
-        length = np.random.uniform(3, 10)
-        width = np.random.uniform(3, 10)
-        height = RoomSimulationAugmentation._get_ceiling_height()
+        length = RoomSimulationAugmentation._truncated_normal(6, 3, 3, 10)
+        width = RoomSimulationAugmentation._truncated_normal(5, 2, 3, 10)
+        height = (
+            RoomSimulationAugmentation.h
+        ) = RoomSimulationAugmentation._truncated_normal(2.4, 0.6, 2.2, 5)
 
         room_dim = np.array([length, width, height])
 
@@ -159,25 +171,6 @@ class RoomSimulationAugmentation(BaseAugmentation):
         )
 
         return room
-
-    @staticmethod
-    def _get_ceiling_height() -> float:
-        """
-        Get the ceiling height of the room.
-
-        Returns
-        -------
-        float
-            The ceiling height.
-        """
-
-        # Truncated normal distribution with
-        mu, sigma = 2.4, 0.6
-        h = stats.truncnorm(
-            (2.2 - mu) / sigma, (5 - mu) / sigma, loc=mu, scale=sigma
-        ).rvs(1)[0]
-
-        return h
 
     @staticmethod
     def _get_random_location(room: pra.ShoeBox) -> np.ndarray:
@@ -206,6 +199,31 @@ class RoomSimulationAugmentation(BaseAugmentation):
         assert room.is_inside(location), "Location is not inside the room."
 
         return location
+
+    @staticmethod
+    def _truncated_normal(mean, sd, min, max):
+        """
+        Generate a truncated normal distribution.
+
+        Parameters
+        ----------
+        mean: float
+            The mean of the distribution.
+        sd: float
+            The standard deviation of the distribution.
+        min: float
+            The minimum value of the distribution.
+        max: float
+            The maximum value of the distribution.
+
+        Returns
+        -------
+        float
+            The generated value.
+        """
+        return stats.truncnorm(
+            (min - mean) / sd, (max - mean) / sd, loc=mean, scale=sd
+        ).rvs(1)[0]
 
 
 class ModifySpeedAugmentation(BaseAugmentation):
@@ -239,5 +257,5 @@ class ModifySpeedAugmentation(BaseAugmentation):
         numpy.ndarray
             The augmented waveform.
         """
-        audio_array = librosa.effects.time_stretch(audio_array, self.speed)
+        audio_array = librosa.effects.time_stretch(audio_array, rate=self.speed)
         return audio_array
