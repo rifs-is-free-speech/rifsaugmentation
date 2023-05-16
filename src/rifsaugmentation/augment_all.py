@@ -5,6 +5,7 @@ augment_all function directly in the CLI.
 """
 
 import os
+import shutil
 import soundfile as sf
 
 from glob import glob
@@ -69,10 +70,7 @@ def augment_all(
     if skip_audio_folder:
         if verbose and not quiet:
             print("Skipping 'audio' folder")
-        audio_files = glob(f"{source_path}/audio/**/.wav", recursive=recursive)
-        filenames = list(set(filenames) - set(audio_files))
-    else:
-        audio_files = set()
+        filenames = glob(f"{source_path}/alignments/**/*.wav", recursive=recursive)
 
     if verbose and not quiet:
         print(f"Found {len(filenames)} wav files in {source_path}")
@@ -114,7 +112,7 @@ def augment_all(
         target = os.path.join(target_path, os.path.relpath(filename, source_path))
 
         if verbose and not quiet:
-            print(f"Saving {filename} to {target}")
+            print(f"Saving {filename} to {target}\n")
 
         os.makedirs(os.path.dirname(target), exist_ok=True)
         sf.write(
@@ -125,8 +123,7 @@ def augment_all(
 
     if move_other_files:
         other_files = list(
-            (set(glob(f"{source_path}/**", recursive=recursive)) - set(audio_files))
-            - set(filenames)
+            set(glob(f"{source_path}/**", recursive=recursive)) - set(filenames)
         )
 
         if verbose and not quiet:
@@ -136,5 +133,7 @@ def augment_all(
         for filename in other_files:
             target = os.path.join(target_path, os.path.relpath(filename, source_path))
             if verbose and not quiet:
-                print(f"Moving {filename} to {target}")
-            os.copy(filename, target)
+                print(f"Copying {filename} to {target}")
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            if not os.path.isdir(filename):
+                shutil.copy2(filename, target)
