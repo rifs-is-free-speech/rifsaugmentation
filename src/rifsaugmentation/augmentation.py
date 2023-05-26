@@ -99,7 +99,7 @@ class RoomSimulationAugmentation(BaseAugmentation):
         while True:
             try:
                 # Simulate the audio in a room
-                room = np.random.choice(self.rooms)
+                room = self._generate_room()
 
                 # place the source in the room
                 room.add_source(

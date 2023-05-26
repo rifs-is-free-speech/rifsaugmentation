@@ -13,7 +13,7 @@ All of the augmentations can be applied over a provided list of files using the
 rifs CLI. See the documentation of rifs for more information.
 """
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 from rifsaugmentation.augment_all import augment_all
 
